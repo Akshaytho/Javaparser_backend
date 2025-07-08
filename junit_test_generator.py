@@ -90,10 +90,10 @@ def _call_llm(state):
     return {"junit_test": ""}
 
 # Set environment variables for LangSmith
-os.environ["LANGCHAIN_TRACING_V2"] = "true"
-os.environ["LANGCHAIN_ENDPOINT"] = "https://api.smith.langchain.com"
-os.environ["LANGCHAIN_API_KEY"] = "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"
-os.environ["LANGCHAIN_PROJECT"] = "JUnit_test_generation"
+os.environ.setdefault("LANGCHAIN_TRACING_V2", "true")
+os.environ.setdefault("LANGCHAIN_ENDPOINT", "https://api.smith.langchain.com")
+os.environ.setdefault("LANGCHAIN_API_KEY", "")
+os.environ.setdefault("LANGCHAIN_PROJECT", "JUnit_test_generation")
 
 @traceable(name="generate_junit_test")
 def generate_junit_test(java_method_code):

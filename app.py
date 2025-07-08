@@ -6,6 +6,7 @@ import io
 import zipfile
 import base64
 import re
+from concurrent.futures import ThreadPoolExecutor
 
 # Add CORS support to allow requests from UI
 from flask_cors import CORS
@@ -38,38 +39,41 @@ def generate_tests():
     # Map of output filename to test content
     test_files = {}
     methods_info = {}
-    for idx, file in enumerate(files):
+
+    def _process(idx_file):
+        idx, file = idx_file
         name = file.get('name')
         content = file.get('content')
         print(f"Processing file: {name}")
         if not name or content is None:
-            continue
+            return None
 
-        # Write content to a temporary file so ExtractMethod can parse it
         tmp_name = f"temp_{idx}.java"
         with open(tmp_name, "w") as tmp_file:
             tmp_file.write(content)
 
-        # Extract method bodies using the Java utility
         extracted = extract_method(tmp_name)
         print(f"Extracted methods from {name}:\n{extracted}")
+        os.remove(tmp_name)
         if not extracted:
-            os.remove(tmp_name)
-            continue
+            return None
 
-        # Collect method names for the response
         method_names = re.findall(r"\b(\w+)\s*\(", extracted)
-        methods_info[name] = method_names
-
         junit = generate_junit_test(extracted)
         test_name = name.rsplit('.', 1)[0] + 'Test.java'
-        test_files[test_name] = junit
-        print(f"Generated test for {name} -> {test_name}")
+        return (test_name, junit, name, method_names)
 
-        os.remove(tmp_name)
+    with ThreadPoolExecutor(max_workers=min(4, len(files))) as executor:
+        for result in executor.map(_process, enumerate(files)):
+            if result is None:
+                continue
+            test_name, junit, orig_name, names = result
+            test_files[test_name] = junit
+            methods_info[orig_name] = names
+            print(f"Generated test for {orig_name} -> {test_name}")
 
     mem_zip = io.BytesIO()
-    with zipfile.ZipFile(mem_zip, 'w') as zf:
+    with zipfile.ZipFile(mem_zip, 'w', zipfile.ZIP_DEFLATED) as zf:
         for fname, code in test_files.items():
             zf.writestr(fname, code)
             print(f"Added {fname} to zip file")

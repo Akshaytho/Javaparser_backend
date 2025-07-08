@@ -4,6 +4,8 @@ from __future__ import annotations
 
 
 
+import logging
+
 try:
     from langchain.chat_models import ChatOpenAI
 except Exception:  # pragma: no cover - langchain may not be installed in tests
@@ -23,6 +25,9 @@ except Exception:  # pragma: no cover - langsmith may not be installed
         return decorator(_func)
 
 
+logger = logging.getLogger(__name__)
+
+
 def _craft_prompt(method_code: str) -> str:
     """Create the English instructions sent to the model."""
 
@@ -37,6 +42,7 @@ def _call_llm(prompt: str) -> str:
     """Return the model's reply for ``prompt`` or an empty string."""
 
     if ChatOpenAI is not None:
+        logger.info("Requesting completion from LLM")
         llm = ChatOpenAI(model_name="gpt-4o", max_tokens=800)
         result = llm.invoke(prompt)
         return result.content.strip()
@@ -49,11 +55,13 @@ def _call_llm(prompt: str) -> str:
 def generate_junit_test(java_method_code: str) -> str:
     """Return the JUnit test generated for ``java_method_code``."""
 
+    logger.info("Generating JUnit test")
     prompt = _craft_prompt(java_method_code)
     return _call_llm(prompt)
 
 
 if __name__ == "__main__":
+    logging.basicConfig(level=logging.INFO)
     from extract_method import extract_method
 
     method_code = extract_method("HelloWorld.java")

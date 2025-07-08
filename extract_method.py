@@ -4,6 +4,7 @@ import os
 import subprocess
 import sys
 import logging
+from typing import Optional
 
 # Paths to the Java helper and library
 _DIR = os.path.dirname(os.path.abspath(__file__))
@@ -36,7 +37,7 @@ def _ensure_compiled() -> bool:
     return True
 
 
-def extract_method(java_file: str) -> str | None:
+def extract_method(java_file: str) -> Optional[str]:
     """Return all methods found in ``java_file`` as text."""
 
     if not _ensure_compiled():

@@ -12,6 +12,19 @@ import zipfile
 from extract_method import extract_method
 from junit_test_generator import generate_junit_test
 
+try:  # pragma: no cover - langsmith is optional in tests
+    from langsmith import traceable
+except Exception:  # pragma: no cover - langsmith may not be installed
+    def traceable(_func=None, **_kwargs):
+        """Fallback no-op decorator when ``langsmith`` is missing."""
+
+        def decorator(func):
+            return func
+
+        if _func is None:
+            return decorator
+        return decorator(_func)
+
 
 app = Flask(__name__)
 # Allow requests from the browser UI
@@ -68,6 +81,7 @@ def _make_zip(test_files):
 
 
 @app.route("/generate-tests", methods=["POST"])
+@traceable
 def generate_tests():
     """Generate JUnit tests for each file in the request."""
     data = _parse_request(request)

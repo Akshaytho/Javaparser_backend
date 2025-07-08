@@ -24,7 +24,9 @@ pip install -r requirements.txt
 
 The backend relies on **LangChain** and uses `ChatOpenAI` for all LLM
 invocation. LangSmith can be enabled for tracing when the environment
-variables are provided.
+variables are provided. Each request to `/generate-tests` is wrapped in a
+LangSmith `traceable` span so high-level steps appear in the trace along with
+the LLM calls.
 
 ## Running the server
 

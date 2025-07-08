@@ -18,13 +18,13 @@ pip install -r requirements.txt
    alongside the sources.
 
 3. Set the required environment variables:
-   - `OPENAI_API_KEY` to enable the OpenAI API.
+   - `OPENAI_API_KEY` for LangChain's ChatOpenAI.
    - Optional LangChain/LangSmith variables `LANGCHAIN_TRACING_V2`,
      `LANGCHAIN_ENDPOINT`, `LANGCHAIN_API_KEY` and `LANGCHAIN_PROJECT`.
 
-The backend optionally integrates with **LangChain** and **LangSmith** for LLM
-invocation and tracing. If these packages are unavailable, the server falls
-back to using the raw OpenAI client.
+The backend relies on **LangChain** and uses `ChatOpenAI` for all LLM
+invocation. LangSmith can be enabled for tracing when the environment
+variables are provided.
 
 ## Running the server
 

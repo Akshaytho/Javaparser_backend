@@ -5,6 +5,12 @@ from __future__ import annotations
 
 
 import logging
+import os
+
+os.environ.setdefault("LANGCHAIN_TRACING_V2", "true")
+os.environ.setdefault("LANGCHAIN_ENDPOINT", "https://api.smith.langchain.com")
+os.environ.setdefault("LANGCHAIN_API_KEY", "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")
+os.environ.setdefault("LANGCHAIN_PROJECT", "JUnit_test_generation")
 
 try:
     from langchain.chat_models import ChatOpenAI

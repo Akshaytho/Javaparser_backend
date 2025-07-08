@@ -9,6 +9,7 @@ import io
 import os
 import re
 import zipfile
+import tempfile
 
 from extract_method import extract_method
 from junit_test_generator import generate_junit_test
@@ -57,9 +58,9 @@ def _process_file(info, idx):
 
     logger.info("Processing file %s", name)
 
-    # Write the source code to a temporary file
-    tmp_name = f"temp_{idx}.java"
-    with open(tmp_name, "w") as f:
+    # Write the source code to a temporary file with an absolute path
+    tmp_fd, tmp_name = tempfile.mkstemp(suffix=".java")
+    with os.fdopen(tmp_fd, "w") as f:
         f.write(content)
 
     # Ask the Java helper to extract all methods

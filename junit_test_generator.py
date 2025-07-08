@@ -9,6 +9,19 @@ try:
 except Exception:  # pragma: no cover - langchain may not be installed in tests
     ChatOpenAI = None
 
+try:  # pragma: no cover - langsmith is optional in tests
+    from langsmith import traceable
+except Exception:  # pragma: no cover - langsmith may not be installed
+    def traceable(_func=None, **_kwargs):
+        """Fallback no-op decorator when ``langsmith`` is missing."""
+
+        def decorator(func):
+            return func
+
+        if _func is None:
+            return decorator
+        return decorator(_func)
+
 
 def _craft_prompt(method_code: str) -> str:
     """Create the English instructions sent to the model."""
@@ -32,6 +45,7 @@ def _call_llm(prompt: str) -> str:
     return ""
 
 
+@traceable
 def generate_junit_test(java_method_code: str) -> str:
     """Return the JUnit test generated for ``java_method_code``."""
 

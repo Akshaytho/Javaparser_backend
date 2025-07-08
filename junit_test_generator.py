@@ -2,13 +2,7 @@
 
 from __future__ import annotations
 
-import os
-from typing import Optional
 
-try:
-    import openai
-except ImportError:  # pragma: no cover - openai may not be installed in tests
-    openai = None
 
 try:
     from langchain.chat_models import ChatOpenAI
@@ -33,19 +27,6 @@ def _call_llm(prompt: str) -> str:
         llm = ChatOpenAI(model_name="gpt-4o", max_tokens=800)
         result = llm.invoke(prompt)
         return result.content.strip()
-
-    if openai is not None:
-        api_key = os.getenv("OPENAI_API_KEY")
-        client = openai.OpenAI(api_key=api_key)
-        response = client.chat.completions.create(
-            model="gpt-4o",
-            messages=[
-                {"role": "system", "content": "You are an expert Java test writer."},
-                {"role": "user", "content": prompt},
-            ],
-            max_tokens=800,
-        )
-        return response.choices[0].message.content.strip()
 
     # No language model available
     return ""

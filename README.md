@@ -28,14 +28,17 @@ API for generating tests.
 python app.py
 ```
 
-Send a POST request to `/generate` with JSON containing either `file_path` or
-`code`.
+Send a POST request to `/generate-tests` with a JSON payload containing a list
+of files. Each file must include a `name` and `content` field. The server will
+extract the methods using the included Java utility and invoke an LLM to
+produce JUnit tests for each file. The response returns a JSON object with a
+Base64-encoded zip archive (`zip`) and the extracted method names.
 
 Example:
 
 ```bash
-curl -X POST http://localhost:8000/generate -H 'Content-Type: application/json' \
-    -d '{"file_path": "HelloWorld.java"}'
+curl -X POST http://localhost:8000/generate-tests -H 'Content-Type: application/json' \
+    -d '{"files": [{"name": "HelloWorld.java", "content": "..."}]}'
 ```
 
-The response contains the generated JUnit test.
+Decode the `zip` field to retrieve the generated test files.

@@ -2,6 +2,7 @@
 
 from flask import Flask, request, jsonify
 from flask_cors import CORS
+import logging
 
 import base64
 import io
@@ -26,6 +27,9 @@ except Exception:  # pragma: no cover - langsmith may not be installed
         return decorator(_func)
 
 
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
 app = Flask(__name__)
 # Allow requests from the browser UI
 CORS(app)
@@ -34,11 +38,13 @@ CORS(app)
 def _parse_request(req):
     """Return the JSON body for either JSON or form-data requests."""
     if req.is_json:
+        logger.info("Parsing JSON request")
         return req.get_json()
     data = req.form.to_dict()
     if "files" in data:
         # The form sends a string representation of the list
         data["files"] = eval(data["files"])
+    logger.info("Parsed %d form fields", len(data))
     return data
 
 
@@ -48,6 +54,8 @@ def _process_file(info, idx):
     content = info.get("content")
     if not name or content is None:
         return None
+
+    logger.info("Processing file %s", name)
 
     # Write the source code to a temporary file
     tmp_name = f"temp_{idx}.java"
@@ -62,6 +70,7 @@ def _process_file(info, idx):
 
     # Find all method names for the response
     method_names = re.findall(r"\b(\w+)\s*\(", extracted)
+    logger.info("Found methods in %s: %s", name, method_names)
 
     # Use the LLM to craft a JUnit test
     junit_code = generate_junit_test(extracted)
@@ -92,6 +101,8 @@ def generate_tests():
     if not isinstance(files, list):
         return jsonify({"error": "files must be a list"}), 400
 
+    logger.info("Generating tests for %d files", len(files))
+
     test_files = {}
     methods_info = {}
 
@@ -104,9 +115,11 @@ def generate_tests():
         methods_info[orig_name] = names
 
     zip_b64 = _make_zip(test_files)
+    logger.info("Generated %d test files", len(test_files))
     return jsonify({"zip": zip_b64, "methods": methods_info})
 
 
 if __name__ == "__main__":
     port = int(os.getenv("PORT", 8000))
+    logger.info("Starting server on port %d", port)
     app.run(host="0.0.0.0", port=port)
